@@ -14,7 +14,7 @@ void main() {
     Get.testMode = true;
   });
 
-  testWidgets('Splash auto-advances to Intro after 5s', (tester) async {
+  testWidgets('Splash auto-advances to Home after 5s', (tester) async {
     tester.view.physicalSize = const Size(390, 884);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
@@ -33,7 +33,8 @@ void main() {
 
     await tester.pump(const Duration(seconds: 6)); // qua mốc 5s
     await tester.pump();
-    expect(find.text('Start Planning'), findsOneWidget);
+    // Splash hiện điều hướng thẳng vào Home (theo cấu hình hiện tại).
+    expect(find.text('Home'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 

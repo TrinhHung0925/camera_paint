@@ -41,6 +41,11 @@ class _HomeViewState extends State<HomeView> {
               onPressed: () => Get.toNamed(AppPage.draw.routeName),
               child: Text('Mở màn vẽ', style: AppText.medium16),
             ),
+            SizedBox(height: 12.h),
+            ElevatedButton(
+              onPressed: () => Get.toNamed(AppPage.game.routeName),
+              child: Text('🍉 Play game', style: AppText.medium16),
+            ),
           ],
         ),
       ),

@@ -11,6 +11,7 @@ abstract class AppColors {
   static const Color ff000000 = Color(0xff000000);
   static const Color ff43A649 = Color(0xff43A649);
   static const Color ffE53935 = Color(0xffE53935);
+  static const Color ff8E44AD = Color(0xff8E44AD);
 
   // --- Onboarding palette ---
   /// Nền tối màn splash (cinematic hook).

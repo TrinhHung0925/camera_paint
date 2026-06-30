@@ -50,6 +50,9 @@ dependencies:
   # On-device hand landmark detection (cross-platform: Android + iOS)
   hand_detection: ^3.2.0
 
+  # Âm thanh hiệu ứng game
+  audioplayers: ^6.1.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -75,6 +78,7 @@ flutter:
   assets:
     - assets/images/
     - assets/icons/
+    - assets/sounds/
 
   fonts:
     - family: Newsreader

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import 'screen/draw/draw_view.dart';
+import 'screen/game/game_view.dart';
 import 'screen/home/home_view.dart';
 import 'screen/intro/intro_view.dart';
 import 'screen/splash/splash_view.dart';
@@ -31,6 +32,9 @@ Route<dynamic> generateRoute(RouteSettings settings) {
     case "/draw":
       return page(settings, () => DrawView());
 
+    case "/game":
+      return page(settings, () => GameView());
+
     default:
       return page(
         settings,
@@ -47,6 +51,7 @@ enum AppPage {
   intro,
   home,
   draw,
+  game,
 }
 
 extension AppPageExtension on AppPage {
@@ -60,6 +65,8 @@ extension AppPageExtension on AppPage {
         return '/${AppPage.home.name}';
       case AppPage.draw:
         return '/${AppPage.draw.name}';
+      case AppPage.game:
+        return '/${AppPage.game.name}';
     }
   }
 }
