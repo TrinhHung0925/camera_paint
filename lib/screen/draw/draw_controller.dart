@@ -46,6 +46,12 @@ class DrawController extends GetxController {
   /// Đang hạ bút hay không.
   bool isDrawing = false;
 
+  /// Đang ở chế độ tẩy (chụm trỏ + giữa) hay không.
+  bool isErasing = false;
+
+  /// Bán kính tẩy (theo pixel ảnh nguồn).
+  double eraseRadius = 40;
+
   /// Số frame liên tiếp không bắt được ngón; vượt ngưỡng mới nhấc bút
   /// (tránh đứt nét khi detect chập chờn 1-2 frame).
   int _missCount = 0;
@@ -187,6 +193,38 @@ class DrawController extends GetxController {
       return;
     }
 
+    // --- Chế độ TẨY: chụm ngón trỏ + giữa sát nhau, di chuyển để xoá ---
+    final middleTip = hand.getLandmark(HandLandmarkType.middleFingerTip);
+    final indexPip = hand.getLandmark(HandLandmarkType.indexFingerPIP);
+    final middlePip = hand.getLandmark(HandLandmarkType.middleFingerPIP);
+    final indexMcp = hand.getLandmark(HandLandmarkType.indexFingerMCP);
+    if (index != null &&
+        middleTip != null &&
+        indexPip != null &&
+        middlePip != null &&
+        indexMcp != null) {
+      final iExt = _dist(index, wrist) > _dist(indexPip, wrist);
+      final mExt = _dist(middleTip, wrist) > _dist(middlePip, wrist);
+      final tipGap = _dist(index, middleTip);
+      final fingerLen = _dist(index, indexMcp);
+      // Hai ngón cùng duỗi và 2 đầu ngón gần nhau (< 60% chiều dài ngón) = chụm.
+      if (iExt && mExt && fingerLen > 0 && tipGap < 0.6 * fingerLen) {
+        _missCount = 0;
+        isDrawing = false;
+        isErasing = true;
+        _liftPen(); // chốt nét đang vẽ trước khi tẩy
+        eraseRadius = imageSize.width * 0.07;
+        final ePos = Offset(
+            (index.x + middleTip.x) / 2, (index.y + middleTip.y) / 2);
+        _eraseAt(ePos);
+        cursor = ePos;
+        debugInfo = 'ERASE';
+        update();
+        return;
+      }
+    }
+    isErasing = false;
+
     // Xét cả 5 ngón. Ngón "đang duỗi" = đầu ngón xa cổ tay hơn khớp giữa.
     // Chọn ngón "rõ nhất" = đầu ngón duỗi xa cổ tay nhất -> điểm vẽ.
     // Bất kỳ ngón nào giơ cũng vẽ; xòe cả bàn tay thì lấy ngón nổi nhất.
@@ -234,6 +272,7 @@ class DrawController extends GetxController {
   /// Không bắt được ngón: đếm miss; vượt ngưỡng mới chốt nét + ẩn cursor
   /// (giữ nét liền mạch khi detect chập chờn vài frame).
   void _noDraw(String info) {
+    isErasing = false;
     _missCount++;
     if (_missCount >= _maxMiss) {
       _liftPen();
@@ -247,6 +286,29 @@ class DrawController extends GetxController {
     final dx = a.x - b.x;
     final dy = a.y - b.y;
     return sqrt(dx * dx + dy * dy);
+  }
+
+  /// Xoá các điểm nằm trong bán kính tẩy quanh [p]; cắt nét thành các đoạn còn lại.
+  void _eraseAt(Offset p) {
+    final r2 = eraseRadius * eraseRadius;
+    final out = <List<Offset>>[];
+    for (final stroke in strokes) {
+      var seg = <Offset>[];
+      for (final pt in stroke) {
+        final dx = pt.dx - p.dx;
+        final dy = pt.dy - p.dy;
+        if (dx * dx + dy * dy <= r2) {
+          if (seg.length >= 2) out.add(seg);
+          seg = <Offset>[];
+        } else {
+          seg.add(pt);
+        }
+      }
+      if (seg.length >= 2) out.add(seg);
+    }
+    strokes
+      ..clear()
+      ..addAll(out);
   }
 
   /// Nhả bút: chốt nét hiện tại vào danh sách.

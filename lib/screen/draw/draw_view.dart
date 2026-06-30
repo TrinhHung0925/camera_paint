@@ -57,6 +57,8 @@ class _DrawViewState extends State<DrawView> {
                   brushColor: c.brushColor,
                   brushWidth: c.brushWidth,
                   isDrawing: c.isDrawing,
+                  isErasing: c.isErasing,
+                  eraseRadius: c.eraseRadius,
                 ),
               ),
               Positioned(
@@ -99,7 +101,11 @@ class _TopBar extends StatelessWidget {
               borderRadius: BorderRadius.circular(20.r),
             ),
             child: Text(
-              controller.isDrawing ? '✍️ Đang vẽ' : '☝️ Giơ 1 ngón trỏ để vẽ',
+              controller.isErasing
+                  ? '🧽 Đang xoá'
+                  : controller.isDrawing
+                      ? '✍️ Đang vẽ'
+                      : 'Giơ ngón để vẽ • Chụm 2 ngón để xoá',
               style: AppText.regular14.copyWith(color: AppColors.ffFFFFFF),
             ),
           ),
@@ -200,6 +206,8 @@ class _DrawPainter extends CustomPainter {
     required this.brushColor,
     required this.brushWidth,
     required this.isDrawing,
+    required this.isErasing,
+    required this.eraseRadius,
   });
 
   final List<List<Offset>> strokes;
@@ -210,6 +218,8 @@ class _DrawPainter extends CustomPainter {
   final Color brushColor;
   final double brushWidth;
   final bool isDrawing;
+  final bool isErasing;
+  final double eraseRadius;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -250,10 +260,28 @@ class _DrawPainter extends CustomPainter {
     }
     _drawStroke(canvas, current, map, paint);
 
-    // Cursor = icon cây bút tại đầu ngón.
+    // Cursor: vòng tròn tẩy khi erase, ngược lại là icon cây bút.
     final c = cursor;
     if (c != null) {
-      _drawPenCursor(canvas, map(c));
+      final p = map(c);
+      if (isErasing) {
+        final r = eraseRadius * scaleX;
+        canvas.drawCircle(
+          p,
+          r,
+          Paint()..color = AppColors.ffFFFFFF.withValues(alpha: 0.18),
+        );
+        canvas.drawCircle(
+          p,
+          r,
+          Paint()
+            ..color = AppColors.ffFFFFFF
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 2.5,
+        );
+      } else {
+        _drawPenCursor(canvas, p);
+      }
     }
   }
 
